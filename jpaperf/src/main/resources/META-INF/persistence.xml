@@ -13,7 +13,7 @@
 			<property name="javax.persistence.jdbc.password" value="1q2w3e"/>
 			
 			<!-- Hibernate settings -->
-			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL94Dialect"/>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL92Dialect"/>
 			<!-- creating schema automatically -->
 			<property name="hibernate.hbm2ddl.auto" value="create"/>
 			<property name="hibernate.show_sql" value="true"/>
