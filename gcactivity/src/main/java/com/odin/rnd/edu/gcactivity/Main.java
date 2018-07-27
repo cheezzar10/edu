@@ -14,13 +14,17 @@ import java.util.regex.Pattern;
 import static java.lang.System.out;
 
 class Main {
-	private static final ByteBlockAllocator byteBlockAllocator = new ByteBlockAllocator(16 * 1024);
-	
-	private static final Deque<byte[]> memBlocksStack = new ArrayDeque<>(16);
-	
 	// TODO to enum
 	private static final int KB = 1024;
 	private static final int MB = 1024 * KB;
+	private static final int GB = 1024 * MB;
+	
+	// to AllocatorCli instance
+	private static final ByteBlockAllocator byteBlockAllocator = new ByteBlockAllocator("byte-block-allocator", 128 * KB);
+	
+	private static final Deque<byte[]> memBlocksStack = new ArrayDeque<>(16);
+	
+	private static final int INVALID_BLOCK_SIZE = -1;
 	
 	private static final Pattern BLOCK_SIZE_PTRN = Pattern.compile("(\\d+)([kmg]?)");
 	
@@ -79,6 +83,10 @@ class Main {
 			blockSize = parseBlockSize(args.get(0));
 		}
 		
+		if (blockSize <= 0) {
+			return;
+		}
+		
 		out.printf("allocating memory block of size: %d bytes%n", blockSize);
 		
 		byte[] byteBlk = new byte[blockSize];
@@ -90,13 +98,30 @@ class Main {
 		
 		Matcher matcher = BLOCK_SIZE_PTRN.matcher(blkSz);
 		if (matcher.matches()) {
-			if (matcher.groupCount() > 2) {
-				String unit = matcher.group(2);
-				out.printf("unit: %s%n", unit);
-			}
+			int size = Integer.parseInt(matcher.group(1));
+			
+			String unit = matcher.group(2);
+			out.printf("unit: %s%n", unit);
+			
+			if (!unit.isEmpty()) {
+				switch (unit) {
+				case "k":
+					return size * KB;
+				case "m":
+					return size * MB;
+				case "g":
+					return size * GB;
+				default:
+					out.printf("unknown unit type: %s%n", unit);
+					return INVALID_BLOCK_SIZE;
+				}
+			} 
+			
+			return size;
 		}
 		
-		return MB;
+		out.printf("invalid block size format: %s%n", blkSz);
+		return INVALID_BLOCK_SIZE;
 	}
 
 	private static CommandWithArgs parseCommand(String cmd) {
