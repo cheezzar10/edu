@@ -1,1 +1,65 @@
 $ java -Xms64m -Xmx64m -Xloggc:gc.log -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -jar target/gcactivity.jar
+
+configuring application to use Java 11
+
+$ JAVA_HOME=~/Applications/jdk-11.0.2.jdk/Contents/Home
+
+gc activity logging options specific for Java 11
+
+gc log format similar to parallel collector format
+java -Xms64m -Xmx64m -Xlog:gc*:file=gc.log -jar target/gcactivity.jar
+
+verbose options:
+java -Xms64m -Xmx64m -Xlog:gc*=debug:file=gc.log -jar target/gcactivity.jar
+
+very useful resource for Java 11 logging configuration: https://docs.oracle.com/en/java/javase/11/tools/java.html#GUID-BE93ABDC-999C-4CB5-A88B-1994AAAC74D5
+additional information about G1 collector: https://www.oracle.com/technetwork/tutorials/tutorials-1876574.html
+
+Some notes about mechanics of G1 grabage collector
+
+1. GC log records format
+
+Heap statistics during collection:
+used before collection(total size) -> used after collection(total size)
+
+Generations statistics during collection (all sizes are expressed in the number of regions):
+used before collection -> used after collection (new size)
+
+2. Very brief details about collection phases
+
+young collection pause (normal) - it's more or less the same as parallel collector !STW!
+
+concurrent marking cycle depends on parameter InitiatingHeapOccupancyPercent (IHOP) which is by default = 45 of the entire heap size
+actually the first stage of concurrent cycle (initial mark) is piggybacked on young collection phase 
+
+root region scanning
+no details yet, but it has to be completed before the next young generation
+
+the fact that root region scans wasn't completed before the next young generation will be reflected in GC logs
+as the record about young collection which waited for root region scan wait
+
+concurrent mark phase
+remark phase
+cleanup phase (little memory can be reclaimed during this phase if collector identified regions which are purely garbage)
+
+after that concurrent collection phase is completed and will be followed by a sequence of young mixed collections
+
+3. Some terminology
+
+collection set (cset) - is the set of regions that will be freed during next GC pause
+
+remembered set (rset) - data structure helps maintain references to objects into it's own region
+basically it's needed to track (and subsequently update) references to objects that will be moved during collection
+
+4. some things we should watch for (candidates for Zabbix triggers)
+
+low priority:
+root regisons scan interrupted by young collection
+
+high priority (the following failures will performed in sigle threaded fashion over the entire heap):
+various G1 failures - concurrent mode failure (increase heap, decrease IHOP)
+promotion failure - indication full gc immediately after mixed GC (tunable unknown right now, more old regions should be collected on each mixed collection)
+evacuation failure - no space in survivor, no space in old gen (to-space overflow/exhausted event)
+humongous allocation - no details
+
+objects are considered as humongous when they are 50% or larger than region size

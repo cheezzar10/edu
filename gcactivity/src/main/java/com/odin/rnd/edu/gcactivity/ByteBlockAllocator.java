@@ -63,7 +63,7 @@ public class ByteBlockAllocator {
 		// print allocation speed stat every second
 		long time = System.currentTimeMillis();
 		if (time - start > 1000) {
-			out.printf("allocation speed: %d/s%n", allocCount);
+			out.printf("allocation rate: %d allocations per seconds%n", allocCount);
 			
 			start = time;
 			allocCount = 0;
