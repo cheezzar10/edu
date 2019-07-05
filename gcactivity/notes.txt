@@ -60,6 +60,10 @@ high priority (the following failures will performed in sigle threaded fashion o
 various G1 failures - concurrent mode failure (increase heap, decrease IHOP)
 promotion failure - indication full gc immediately after mixed GC (tunable unknown right now, more old regions should be collected on each mixed collection)
 evacuation failure - no space in survivor, no space in old gen (to-space overflow/exhausted event)
+
+To-space exhausted
+several Pause Full collection follows 
+
 humongous allocation - no details
 
 objects are considered as humongous when they are 50% or larger than region size
