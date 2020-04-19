@@ -1,0 +1,7 @@
+bytecode instruction translation
+
+iconst_1 - pushing 1 to the top of the stack
+
+addi sp, sp, -4
+li t0, 1
+sw t0, 0(sp)
