@@ -62,10 +62,10 @@ class Main {
 			case "stop":
 				byteBlockAllocator.stop();
 				break CMDLOOP;
-			case "memstat":
+			case "mem":
 				printMemStat();
 				break;
-			case "allocate":
+			case "alloc":
 				allocate(cmdArgs.getArguments());
 				break;
 			default:
@@ -87,22 +87,25 @@ class Main {
 			return;
 		}
 		
-		out.printf("allocating memory block of size: %d bytes%n", blockSize);
+		int blocksCount = 1;
+		if (args.size() > 1) {
+			blocksCount = Integer.parseInt(args.get(1));
+		}
 		
-		byte[] byteBlk = new byte[blockSize];
-		memBlocksStack.addFirst(byteBlk);
+		out.printf("allocating %d memory block(s) of size: %,d bytes%n", blocksCount, blockSize);
+		
+		for (int i = 0;i < blocksCount;i++) {
+			byte[] byteBlk = new byte[blockSize];
+			memBlocksStack.addFirst(byteBlk);
+		}
 	}
 
 	private static int parseBlockSize(String blkSz) {
-		out.printf("parsing memory block size argument: %s%n", blkSz);
-		
 		Matcher matcher = BLOCK_SIZE_PTRN.matcher(blkSz);
 		if (matcher.matches()) {
 			int size = Integer.parseInt(matcher.group(1));
 			
 			String unit = matcher.group(2);
-			out.printf("unit: %s%n", unit);
-			
 			if (!unit.isEmpty()) {
 				switch (unit) {
 				case "k":
@@ -131,6 +134,6 @@ class Main {
 
 	private static void printMemStat() {
 		Runtime rt = Runtime.getRuntime();
-		out.printf("max mem: %d, total mem: %d, free mem: %d%n", rt.maxMemory(), rt.totalMemory(), rt.freeMemory());
+		out.printf("max mem: %,d, total mem: %,d, free mem: %,d%n", rt.maxMemory(), rt.totalMemory(), rt.freeMemory());
 	}
 }
