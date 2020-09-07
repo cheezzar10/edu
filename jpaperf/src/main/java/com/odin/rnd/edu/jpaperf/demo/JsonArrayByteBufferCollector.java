@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -18,6 +19,8 @@ public class JsonArrayByteBufferCollector<T> implements Collector<T, JsonGenerat
 	private final ObjectMapper objMapper;
 	private final int maxBufSz;
 	
+	private final AtomicInteger combinerIds = new AtomicInteger();
+	
 	public JsonArrayByteBufferCollector(ObjectMapper objMapper, int maxBufSz) {
 		this.objMapper = objMapper;
 		this.maxBufSz = maxBufSz;
@@ -27,9 +30,11 @@ public class JsonArrayByteBufferCollector<T> implements Collector<T, JsonGenerat
 	public Supplier<JsonGeneratorCombiner<T>> supplier() {
 		return () -> { 
 			try {
-				return new JsonGeneratorCombiner<>(objMapper, new ByteArrayOutputStream(), maxBufSz);
+				int combinerId = combinerIds.getAndIncrement();
+
+				return new JsonGeneratorCombiner<>(combinerId, objMapper, new ByteArrayOutputStream(4096), maxBufSz);
 			} catch (IOException ioEx) {
-				throw new IllegalStateException("combiner creation failed: ", ioEx);
+				throw new IllegalStateException("json array combiner creation failed: ", ioEx);
 			}
 		};
 	}
@@ -63,7 +68,7 @@ public class JsonArrayByteBufferCollector<T> implements Collector<T, JsonGenerat
 			try {
 				c.finish();
 			} catch (IOException ioEx) {
-				throw new IllegalStateException("combiner finish failed: ", ioEx);
+				throw new IllegalStateException("json array combiner finish failed: ", ioEx);
 			}
 			
 			return Pair.of(c.getBytes(), c.getCount());

@@ -1,6 +1,5 @@
 package com.odin.rnd.edu.jpaperf.demo;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +46,11 @@ public class StreamingJsonDemo {
 		}
 		
 		try (FileOutputStream fs = new FileOutputStream("accounts-2.json");
-				ByteArrayOutputStream buf = new ByteArrayOutputStream();
 				JsonGenerator jsonGen = jsonFactory.createGenerator(fs)) {
 			
 			Pair<byte[], Long> result = accounts
 					.stream()
-					.collect(new JsonArrayByteBufferCollector<>(objMapper, 128));
+					.collect(new JsonArrayByteBufferCollector<>(objMapper, 256));
 			
 			fs.write(result.getLeft());
 			
