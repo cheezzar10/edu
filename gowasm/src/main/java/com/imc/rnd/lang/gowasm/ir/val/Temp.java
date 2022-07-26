@@ -17,6 +17,11 @@ public class Temp implements Var {
         return Optional.of("t:" + id);
     }
 
+    @Override
+    public ValKind getKind() {
+        return ValKind.TEMP;
+    }
+
     public String toString() {
         return "temp (" + id + ")";
     }

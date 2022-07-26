@@ -13,6 +13,9 @@ import com.imc.rnd.lang.gowasm.ir.val.Int;
 import com.imc.rnd.lang.gowasm.ir.val.Local;
 import com.imc.rnd.lang.gowasm.ir.val.Temp;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class IRDemo {
     public static void main(String[] args) {
         LocalIRBuffer codeBuffer = new LocalIRBuffer();
@@ -33,6 +36,13 @@ public class IRDemo {
 
         // TODO SetArg(index, val), Call(name), Compare(Val, Val), CondJump
         // TODO temporaries are defined like locals, format: t_<temp_index>
+        System.out.println("--- code buffer contents ---");
         System.out.println(codeBuffer.dumpOperationsToString());
+
+        LocalWATCodeEmitter emitter = new LocalWATCodeEmitter(codeBuffer);
+        List<String> functionCode = emitter.emit();
+
+        System.out.println("--- compiled code ---");
+        System.out.println(functionCode.stream().collect(Collectors.joining("\n")));
     }
 }

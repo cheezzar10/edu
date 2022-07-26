@@ -16,4 +16,9 @@ public class CondJump extends BaseOp {
         return super.toString() +
                 ": cond jump ((" + jumpCondition + ") |-> " + falseBranchLabel + ")";
     }
+
+    @Override
+    public OpCode getOpCode() {
+        return OpCode.COND_JUMP;
+    }
 }

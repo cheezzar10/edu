@@ -16,6 +16,11 @@ public class Local implements Var {
         return Optional.of(name);
     }
 
+    @Override
+    public ValKind getKind() {
+        return ValKind.LOCAL;
+    }
+
     public String toString() {
         return "local var (`" + name + "`)";
     }

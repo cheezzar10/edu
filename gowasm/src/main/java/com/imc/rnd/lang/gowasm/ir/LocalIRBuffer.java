@@ -14,6 +14,10 @@ public class LocalIRBuffer {
         operations.add(operation.withId(currentOperationId));
     }
 
+    public ArrayList<Op> getOperations() {
+        return operations;
+    }
+
     public String dumpOperationsToString() {
         return operations.stream()
                 .map(Object::toString)

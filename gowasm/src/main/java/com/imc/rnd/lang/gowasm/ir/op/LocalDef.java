@@ -12,7 +12,16 @@ public class LocalDef extends BaseOp {
         this.initialValue = initialValue;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public String toString() {
         return super.toString() + ": local def (`" + name + "` <- (" + initialValue + ")";
+    }
+
+    @Override
+    public OpCode getOpCode() {
+        return OpCode.LOCAL_DEF;
     }
 }

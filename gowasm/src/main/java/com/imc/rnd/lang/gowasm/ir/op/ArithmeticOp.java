@@ -1,5 +1,6 @@
 package com.imc.rnd.lang.gowasm.ir.op;
 
+// TODO rename to ArithmeticOperator
 public enum ArithmeticOp {
     PLUS("+"), MINUS("-");
 

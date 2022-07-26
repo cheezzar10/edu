@@ -4,4 +4,6 @@ public interface Op {
     int getId();
 
     Op withId(int id);
+
+    OpCode getOpCode();
 }

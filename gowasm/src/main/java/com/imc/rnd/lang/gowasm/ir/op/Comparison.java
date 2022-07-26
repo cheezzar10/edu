@@ -20,4 +20,9 @@ public class Comparison extends BaseOp {
         return super.toString() +
                 ": cmp op (" + target + " <- " + leftOperand + " " + operator + " " + rightOperand + ")";
     }
+
+    @Override
+    public OpCode getOpCode() {
+        return OpCode.COMPARISON;
+    }
 }

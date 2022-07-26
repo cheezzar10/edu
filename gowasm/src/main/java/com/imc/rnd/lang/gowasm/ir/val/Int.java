@@ -14,6 +14,15 @@ public class Int implements Val {
         return Optional.empty();
     }
 
+    public int getValue() {
+        return value;
+    }
+
+    @Override
+    public ValKind getKind() {
+        return ValKind.INT;
+    }
+
     public String toString() {
         return "int (" + value + ")";
     }

@@ -12,7 +12,20 @@ public class Move extends BaseOp {
         this.source = source;
     }
 
+    public Var getTarget() {
+        return target;
+    }
+
+    public Val getSource() {
+        return source;
+    }
+
     public String toString() {
         return super.toString() + ": move (" + target + " <- (" + source + "))";
+    }
+
+    @Override
+    public OpCode getOpCode() {
+        return OpCode.MOVE;
     }
 }
