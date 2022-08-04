@@ -1,7 +1,6 @@
 package com.imc.rnd.lang.gowasm.ir.val;
 
 import java.util.Objects;
-import java.util.Optional;
 
 public class Local implements Var {
     // type etc can be retrieved from var scope symbol table
@@ -12,8 +11,8 @@ public class Local implements Var {
     }
 
     @Override
-    public Optional<String> getName() {
-        return Optional.of(name);
+    public String getName() {
+        return name;
     }
 
     @Override

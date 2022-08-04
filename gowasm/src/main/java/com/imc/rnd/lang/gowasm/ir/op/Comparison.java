@@ -16,6 +16,22 @@ public class Comparison extends BaseOp {
         this.rightOperand = rightOperand;
     }
 
+    public RelOp getOperator() {
+        return operator;
+    }
+
+    public Var getTarget() {
+        return target;
+    }
+
+    public Val getLeftOperand() {
+        return leftOperand;
+    }
+
+    public Val getRightOperand() {
+        return rightOperand;
+    }
+
     public String toString() {
         return super.toString() +
                 ": cmp op (" + target + " <- " + leftOperand + " " + operator + " " + rightOperand + ")";

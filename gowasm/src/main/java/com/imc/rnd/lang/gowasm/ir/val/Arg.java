@@ -1,9 +1,8 @@
 package com.imc.rnd.lang.gowasm.ir.val;
 
 import java.util.Objects;
-import java.util.Optional;
 
-public class Arg implements Val {
+public class Arg implements Var {
     private final String name;
 
     public Arg(String name) {
@@ -11,8 +10,8 @@ public class Arg implements Val {
     }
 
     @Override
-    public Optional<String> getName() {
-        return Optional.of(name);
+    public String getName() {
+        return name;
     }
 
     @Override

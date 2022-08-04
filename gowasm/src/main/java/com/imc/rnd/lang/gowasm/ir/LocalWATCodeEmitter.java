@@ -6,6 +6,7 @@ import com.imc.rnd.lang.gowasm.ir.op.CondJump;
 import com.imc.rnd.lang.gowasm.ir.op.LocalDef;
 import com.imc.rnd.lang.gowasm.ir.op.Move;
 import com.imc.rnd.lang.gowasm.ir.op.Op;
+import com.imc.rnd.lang.gowasm.ir.op.RelOp;
 import com.imc.rnd.lang.gowasm.ir.val.Int;
 import com.imc.rnd.lang.gowasm.ir.val.Local;
 import com.imc.rnd.lang.gowasm.ir.val.Val;
@@ -44,7 +45,23 @@ public class LocalWATCodeEmitter {
     }
 
     private Stream<String> emitComparisonCode(Comparison comparison) {
-        return Stream.empty();
+        Stream<String> leftOperandLoadCode = emitLoadFromValCode(comparison.getLeftOperand());
+        Stream<String> rightOperandLoadCode = emitLoadFromValCode(comparison.getRightOperand());
+        Stream<String> relOpCode = emitComparisonOperatorCode(comparison.getOperator());
+        Stream<String> storeResultCode = emitStoreToVarCode(comparison.getTarget());
+
+        return Stream.concat(
+                Stream.concat(
+                        Stream.concat(leftOperandLoadCode, rightOperandLoadCode),
+                        relOpCode),
+                storeResultCode);
+    }
+
+    private Stream<String> emitComparisonOperatorCode(RelOp operator) {
+        switch (operator) {
+            case LT: return Stream.of("i32.lt_s");
+            default: throw new IllegalArgumentException("unsupported comparison operator: " + operator);
+        }
     }
 
     private Stream<String> emitCondJumpCode(CondJump condJump) {
@@ -52,35 +69,34 @@ public class LocalWATCodeEmitter {
     }
 
     private Stream<String> emitMoveCode(Move move) {
-        Stream<String> moveSourceCode = emitMoveSourceCode(move.getSource());
-        Stream<String> moveTargetCode = emitMoveTargetCode(move.getTarget());
+        Stream<String> moveSourceCode = emitLoadFromValCode(move.getSource());
+        Stream<String> moveTargetCode = emitStoreToVarCode(move.getTarget());
 
         return Stream.concat(moveSourceCode, moveTargetCode);
     }
 
-    private Stream<String> emitMoveSourceCode(Val moveSource) {
-        switch (moveSource.getKind()) {
-            case INT: return emitIntLiteralCode((Int)moveSource);
-            default: throw new IllegalArgumentException("unsupported move source kind: " + moveSource.getKind());
+    private Stream<String> emitLoadFromValCode(Val source) {
+        switch (source.getKind()) {
+            case INT: return emitLoadIntLiteralCode((Int)source);
+            case LOCAL: return emitLoadFromLocalCode((Local)source);
+            default: throw new IllegalArgumentException("unsupported move source kind: " + source.getKind());
         }
     }
 
-    private Stream<String> emitMoveTargetCode(Var moveTarget) {
-        switch (moveTarget.getKind()) {
-            case LOCAL: return emitLocalAssignmentCode((Local)moveTarget);
-            default: throw new IllegalArgumentException("unsupported move target kind: " + moveTarget.getKind());
+    private Stream<String> emitStoreToVarCode(Var targetVar) {
+        switch (targetVar.getKind()) {
+            case LOCAL:
+            case TEMP: return Stream.of("local.set $" + targetVar.getName());
+            default: throw new IllegalArgumentException("unsupported move target kind: " + targetVar.getKind());
         }
     }
 
-    private Stream<String> emitLocalAssignmentCode(Local localVar) {
-        return Stream.of(
-                "local.set $" +
-                        localVar.getName().orElseThrow(
-                                () -> new IllegalArgumentException("unnamed local")));
-    }
-
-    private Stream<String> emitIntLiteralCode(Int intLiteral) {
+    private Stream<String> emitLoadIntLiteralCode(Int intLiteral) {
         return Stream.of("i32.const " + intLiteral.getValue());
+    }
+
+    private Stream<String> emitLoadFromLocalCode(Local localVar) {
+        return Stream.of("local.get " + localVar.getName());
     }
 
     private Stream<String> emitLocalDefCode(LocalDef localDef) {
