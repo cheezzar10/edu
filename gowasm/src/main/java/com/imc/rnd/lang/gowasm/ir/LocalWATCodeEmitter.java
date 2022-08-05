@@ -3,12 +3,14 @@ package com.imc.rnd.lang.gowasm.ir;
 import com.imc.rnd.lang.gowasm.ir.op.ArithmeticCalc;
 import com.imc.rnd.lang.gowasm.ir.op.Comparison;
 import com.imc.rnd.lang.gowasm.ir.op.CondJump;
+import com.imc.rnd.lang.gowasm.ir.op.Label;
 import com.imc.rnd.lang.gowasm.ir.op.LocalDef;
 import com.imc.rnd.lang.gowasm.ir.op.Move;
 import com.imc.rnd.lang.gowasm.ir.op.Op;
 import com.imc.rnd.lang.gowasm.ir.op.RelOp;
 import com.imc.rnd.lang.gowasm.ir.val.Int;
 import com.imc.rnd.lang.gowasm.ir.val.Local;
+import com.imc.rnd.lang.gowasm.ir.val.Temp;
 import com.imc.rnd.lang.gowasm.ir.val.Val;
 import com.imc.rnd.lang.gowasm.ir.val.Var;
 
@@ -25,8 +27,21 @@ public class LocalWATCodeEmitter {
 
     public List<String> emit() {
         return codeBuffer.getOperations().stream()
-                .flatMap(this::emitOperationCode)
+                .flatMap(op -> {
+                    Stream<String> opCode = emitOperationCode(op);
+                    Stream<String> labelCode = op.getLabel().stream()
+                            .flatMap(this::emitOperationLabelCode);
+
+                    return Stream.concat(labelCode, opCode);
+                })
                 .collect(Collectors.toList());
+    }
+
+    private Stream<String> emitOperationLabelCode(Label label) {
+        switch (label.getJumpDir()) {
+            case FORWARD: return Stream.of(")"); // closing block
+            default: throw new IllegalArgumentException("unsupported jump direction: " + label.getJumpDir());
+        }
     }
 
     private Stream<String> emitOperationCode(Op op) {
@@ -65,7 +80,11 @@ public class LocalWATCodeEmitter {
     }
 
     private Stream<String> emitCondJumpCode(CondJump condJump) {
-        return Stream.empty();
+        Stream<String> blockDefCode = Stream.of("(block $" + condJump.getFalseBranchLabel().getName());
+        Stream<String> loadJumpCondCode = emitLoadFromValCode(condJump.getJumpCondition());
+        Stream<String> condBranchCode = Stream.of("br_if $" + condJump.getFalseBranchLabel().getName());
+
+        return Stream.concat(blockDefCode, Stream.concat(loadJumpCondCode, condBranchCode));
     }
 
     private Stream<String> emitMoveCode(Move move) {
@@ -79,6 +98,7 @@ public class LocalWATCodeEmitter {
         switch (source.getKind()) {
             case INT: return emitLoadIntLiteralCode((Int)source);
             case LOCAL: return emitLoadFromLocalCode((Local)source);
+            case TEMP: return emitLoadFromTempCode((Temp)source);
             default: throw new IllegalArgumentException("unsupported move source kind: " + source.getKind());
         }
     }
@@ -97,6 +117,10 @@ public class LocalWATCodeEmitter {
 
     private Stream<String> emitLoadFromLocalCode(Local localVar) {
         return Stream.of("local.get " + localVar.getName());
+    }
+
+    private Stream<String> emitLoadFromTempCode(Temp temp) {
+        return Stream.of("local.get " + temp.getName());
     }
 
     private Stream<String> emitLocalDefCode(LocalDef localDef) {

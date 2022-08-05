@@ -24,11 +24,15 @@ public class IRDemo {
         codeBuffer.addOperation(new Move(new Local("a"), new Int(10)));
 
         codeBuffer.addOperation(new Comparison(RelOp.LT, new Temp(0), new Local("a"), new Int(2)));
-        codeBuffer.addOperation(new CondJump(new Temp(0), new Label("b1_false")));
+        codeBuffer.addOperation(new CondJump(new Temp(0), new Label("b1.false")));
+
+        codeBuffer.addOperation(new Move(new Local("a"), new Int(20)));
 
         // d = a + b + c
         // t0 = a + b
-        codeBuffer.addOperation(new ArithmeticCalc(ArithmeticOp.PLUS, new Temp(1), new Arg("n"), new Int(2)));
+        codeBuffer.addOperation(
+                new ArithmeticCalc(ArithmeticOp.PLUS, new Temp(1), new Arg("n"), new Int(2))
+                        .withLabel(new Label("b1.false")));
         // t1 = t0 + c
         codeBuffer.addOperation(new ArithmeticCalc(ArithmeticOp.PLUS, new Temp(2), new Temp(0), new Local("c")));
 
