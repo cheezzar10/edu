@@ -8,6 +8,7 @@ import com.imc.rnd.lang.gowasm.ir.op.LocalDef;
 import com.imc.rnd.lang.gowasm.ir.op.ArithmeticOp;
 import com.imc.rnd.lang.gowasm.ir.op.Move;
 import com.imc.rnd.lang.gowasm.ir.op.RelOp;
+import com.imc.rnd.lang.gowasm.ir.op.ReturnVal;
 import com.imc.rnd.lang.gowasm.ir.val.Arg;
 import com.imc.rnd.lang.gowasm.ir.val.Int;
 import com.imc.rnd.lang.gowasm.ir.val.Local;
@@ -25,6 +26,7 @@ public class IRDemo {
 
         // codeBuffer.addOperation(new Comparison(RelOp.LT, new Temp(0), new Local("a"), new Int(2)));
         codeBuffer.addOperation(new CondJump(new Local("a"), RelOp.GE, new Int(2), new Label("b1.f")));
+        codeBuffer.addOperation(new ReturnVal(new Arg("n")));
 
         codeBuffer.addOperation(new Move(new Local("a"), new Int(20)));
 
@@ -37,7 +39,7 @@ public class IRDemo {
 
         // SetArg(0, t0)
 
-        // TODO SetArg(index, val), Call(name), Compare(Val, Val), CondJump
+        // TODO CallFunc(var, name, params list)
         // TODO temporaries are defined like locals, format: t.<temp_index>
         System.out.println("--- code buffer contents ---");
         System.out.println(codeBuffer.dumpOperationsToString());

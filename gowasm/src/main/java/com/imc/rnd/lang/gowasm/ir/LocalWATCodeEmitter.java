@@ -8,8 +8,11 @@ import com.imc.rnd.lang.gowasm.ir.op.LocalDef;
 import com.imc.rnd.lang.gowasm.ir.op.Move;
 import com.imc.rnd.lang.gowasm.ir.op.Op;
 import com.imc.rnd.lang.gowasm.ir.op.RelOp;
+import com.imc.rnd.lang.gowasm.ir.op.ReturnVal;
+import com.imc.rnd.lang.gowasm.ir.val.Arg;
 import com.imc.rnd.lang.gowasm.ir.val.Int;
 import com.imc.rnd.lang.gowasm.ir.val.Local;
+import com.imc.rnd.lang.gowasm.ir.val.NamedVal;
 import com.imc.rnd.lang.gowasm.ir.val.Temp;
 import com.imc.rnd.lang.gowasm.ir.val.Val;
 import com.imc.rnd.lang.gowasm.ir.val.Var;
@@ -39,8 +42,15 @@ public class LocalWATCodeEmitter {
             case COMPARISON: return emitComparisonCode((Comparison)op);
             case ARITHMETIC_CALC: return emitArithmeticExprCode((ArithmeticCalc)op);
             case LABEL: return emitLabelCode((Label)op);
+            case RETURN_VAL: return emitReturnValCode((ReturnVal)op);
             default: throw new IllegalArgumentException("unsupported op code: " + op.getOpCode());
         }
+    }
+
+    private Stream<String> emitReturnValCode(ReturnVal returnVal) {
+        return Stream.concat(
+                emitLoadFromValCode(returnVal.getValue()),
+                Stream.of("return"));
     }
 
     private Stream<String> emitLabelCode(Label label) {
@@ -95,12 +105,13 @@ public class LocalWATCodeEmitter {
         return Stream.concat(moveSourceCode, moveTargetCode);
     }
 
-    private Stream<String> emitLoadFromValCode(Val source) {
-        switch (source.getKind()) {
-            case INT: return emitLoadIntLiteralCode((Int)source);
-            case LOCAL: return emitLoadFromLocalCode((Local)source);
-            case TEMP: return emitLoadFromTempCode((Temp)source);
-            default: throw new IllegalArgumentException("unsupported move source kind: " + source.getKind());
+    private Stream<String> emitLoadFromValCode(Val value) {
+        switch (value.getKind()) {
+            case INT: return emitLoadIntLiteralCode((Int)value);
+            case LOCAL:
+            case TEMP:
+            case ARG: return emitLoadFromNamedValCode((NamedVal)value);
+            default: throw new IllegalArgumentException("unsupported move source kind: " + value.getKind());
         }
     }
 
@@ -116,12 +127,8 @@ public class LocalWATCodeEmitter {
         return Stream.of("i32.const " + intLiteral.getValue());
     }
 
-    private Stream<String> emitLoadFromLocalCode(Local localVar) {
-        return Stream.of("local.get $" + localVar.getName());
-    }
-
-    private Stream<String> emitLoadFromTempCode(Temp temp) {
-        return Stream.of("local.get $" + temp.getName());
+    private Stream<String> emitLoadFromNamedValCode(NamedVal value) {
+        return Stream.of("local.get $" + value.getName());
     }
 
     private Stream<String> emitLocalDefCode(LocalDef localDef) {
