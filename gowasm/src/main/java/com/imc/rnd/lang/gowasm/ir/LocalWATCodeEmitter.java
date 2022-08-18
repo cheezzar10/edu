@@ -1,6 +1,7 @@
 package com.imc.rnd.lang.gowasm.ir;
 
 import com.imc.rnd.lang.gowasm.ir.op.ArithmeticCalc;
+import com.imc.rnd.lang.gowasm.ir.op.ArithmeticOp;
 import com.imc.rnd.lang.gowasm.ir.op.Comparison;
 import com.imc.rnd.lang.gowasm.ir.op.CondJump;
 import com.imc.rnd.lang.gowasm.ir.op.Label;
@@ -57,8 +58,22 @@ public class LocalWATCodeEmitter {
         return Stream.of(") ;; " + label.getName());
     }
 
-    private Stream<String> emitArithmeticExprCode(ArithmeticCalc arithmeticExpr) {
-        return Stream.empty();
+    private Stream<String> emitArithmeticExprCode(ArithmeticCalc arithmeticCalc) {
+        return Stream.concat(
+                Stream.concat(
+                        Stream.concat(
+                                emitLoadFromValCode(arithmeticCalc.getLeftOperand()),
+                                emitLoadFromValCode(arithmeticCalc.getRightOperand())),
+                        emitArithmeticOperatorCode(arithmeticCalc.getOperator())),
+                emitStoreToVarCode(arithmeticCalc.getTarget()));
+    }
+
+    private Stream<String> emitArithmeticOperatorCode(ArithmeticOp operator) {
+        switch (operator) {
+            case PLUS: return Stream.of("i32.add");
+            case MINUS: return Stream.of("i32.sub");
+            default: throw new IllegalArgumentException("unsupported arithmetical operator: " + operator);
+        }
     }
 
     private Stream<String> emitComparisonCode(Comparison comparison) {

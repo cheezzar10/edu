@@ -33,9 +33,7 @@ public class IRDemo {
         // d = a + b + c
         // t0 = a + b
         codeBuffer.addOperation(new Label("b1.f"));
-        codeBuffer.addOperation(new ArithmeticCalc(ArithmeticOp.PLUS, new Temp(1), new Arg("n"), new Int(2)));
-        // t1 = t0 + c
-        codeBuffer.addOperation(new ArithmeticCalc(ArithmeticOp.PLUS, new Temp(2), new Temp(0), new Local("c")));
+        codeBuffer.addOperation(new ArithmeticCalc(new Temp(0), new Arg("n"), ArithmeticOp.MINUS, new Int(1)));
 
         // SetArg(0, t0)
 

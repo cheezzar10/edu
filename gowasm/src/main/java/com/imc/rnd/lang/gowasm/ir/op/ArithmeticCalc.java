@@ -5,16 +5,32 @@ import com.imc.rnd.lang.gowasm.ir.val.Var;
 
 // TODO rename to ArithmeticExpr
 public class ArithmeticCalc extends BaseOp {
-    private final ArithmeticOp operator;
     private final Var target;
     private final Val leftOperand;
+    private final ArithmeticOp operator;
     private final Val rightOperand;
 
-    public ArithmeticCalc(ArithmeticOp operator, Var target, Val leftOperand, Val rightOperand) {
-        this.operator = operator;
+    public ArithmeticCalc(Var target, Val leftOperand, ArithmeticOp operator, Val rightOperand) {
         this.target = target;
         this.leftOperand = leftOperand;
+        this.operator = operator;
         this.rightOperand = rightOperand;
+    }
+
+    public Var getTarget() {
+        return target;
+    }
+
+    public Val getLeftOperand() {
+        return leftOperand;
+    }
+
+    public ArithmeticOp getOperator() {
+        return operator;
+    }
+
+    public Val getRightOperand() {
+        return rightOperand;
     }
 
     public String toString() {

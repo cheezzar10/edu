@@ -12,7 +12,7 @@ public class Temp implements Var {
 
     @Override
     public String getName() {
-        return "t:" + id;
+        return "t." + id;
     }
 
     @Override
