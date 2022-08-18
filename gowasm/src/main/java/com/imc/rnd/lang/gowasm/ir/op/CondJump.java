@@ -2,28 +2,38 @@ package com.imc.rnd.lang.gowasm.ir.op;
 
 import com.imc.rnd.lang.gowasm.ir.val.Val;
 
-// TODO do not store operands, should reference boolean val
-// TODO Split conditional branch into Branch ( forward jump ) and Loop ( backward jump )
 public class CondJump extends BaseOp {
-    private final Val jumpCondition;
-    private final Label falseBranchLabel;
+    private final Val leftOperand;
+    private final RelOp operator;
+    private final Val rightOperand;
+    private final Label targetLabel;
 
-    public CondJump(Val jumpCondition, Label falseBranchLabel) {
-        this.jumpCondition = jumpCondition;
-        this.falseBranchLabel = falseBranchLabel;
+    public CondJump(Val leftOperand, RelOp operator, Val rightOperand, Label targetLabel) {
+        this.leftOperand = leftOperand;
+        this.operator = operator;
+        this.rightOperand = rightOperand;
+        this.targetLabel = targetLabel;
     }
 
-    public Val getJumpCondition() {
-        return jumpCondition;
+    public Val getLeftOperand() {
+        return leftOperand;
     }
 
-    public Label getFalseBranchLabel() {
-        return falseBranchLabel;
+    public RelOp getOperator() {
+        return operator;
+    }
+
+    public Val getRightOperand() {
+        return rightOperand;
+    }
+
+    public Label getTargetLabel() {
+        return targetLabel;
     }
 
     public String toString() {
         return super.toString() +
-                ": cond jump ((" + jumpCondition + ") |-> " + falseBranchLabel + ")";
+                ": cond jump ((" + leftOperand + " " + operator + " " + rightOperand + ") |-> " + targetLabel + ")";
     }
 
     @Override

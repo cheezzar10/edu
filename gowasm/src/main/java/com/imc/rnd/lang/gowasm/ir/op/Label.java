@@ -1,7 +1,12 @@
 package com.imc.rnd.lang.gowasm.ir.op;
 
-public class Label {
+public class Label extends BaseOp {
     private final String name;
+
+    @Override
+    public OpCode getOpCode() {
+        return OpCode.LABEL;
+    }
 
     public enum JumpDir {
         FORWARD, BACKWARD

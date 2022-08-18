@@ -27,21 +27,8 @@ public class LocalWATCodeEmitter {
 
     public List<String> emit() {
         return codeBuffer.getOperations().stream()
-                .flatMap(op -> {
-                    Stream<String> opCode = emitOperationCode(op);
-                    Stream<String> labelCode = op.getLabel().stream()
-                            .flatMap(this::emitOperationLabelCode);
-
-                    return Stream.concat(labelCode, opCode);
-                })
+                .flatMap(this::emitOperationCode)
                 .collect(Collectors.toList());
-    }
-
-    private Stream<String> emitOperationLabelCode(Label label) {
-        switch (label.getJumpDir()) {
-            case FORWARD: return Stream.of(")"); // closing block
-            default: throw new IllegalArgumentException("unsupported jump direction: " + label.getJumpDir());
-        }
     }
 
     private Stream<String> emitOperationCode(Op op) {
@@ -51,8 +38,13 @@ public class LocalWATCodeEmitter {
             case COND_JUMP: return emitCondJumpCode((CondJump)op);
             case COMPARISON: return emitComparisonCode((Comparison)op);
             case ARITHMETIC_CALC: return emitArithmeticExprCode((ArithmeticCalc)op);
+            case LABEL: return emitLabelCode((Label)op);
             default: throw new IllegalArgumentException("unsupported op code: " + op.getOpCode());
         }
+    }
+
+    private Stream<String> emitLabelCode(Label label) {
+        return Stream.of(") ;; " + label.getName());
     }
 
     private Stream<String> emitArithmeticExprCode(ArithmeticCalc arithmeticExpr) {
@@ -75,16 +67,25 @@ public class LocalWATCodeEmitter {
     private Stream<String> emitComparisonOperatorCode(RelOp operator) {
         switch (operator) {
             case LT: return Stream.of("i32.lt_s");
+            case GE: return Stream.of("i32.ge_s");
             default: throw new IllegalArgumentException("unsupported comparison operator: " + operator);
         }
     }
 
     private Stream<String> emitCondJumpCode(CondJump condJump) {
-        Stream<String> blockDefCode = Stream.of("(block $" + condJump.getFalseBranchLabel().getName());
-        Stream<String> loadJumpCondCode = emitLoadFromValCode(condJump.getJumpCondition());
-        Stream<String> condBranchCode = Stream.of("br_if $" + condJump.getFalseBranchLabel().getName());
+        Stream<String> blockDefCode = Stream.of("(block $" + condJump.getTargetLabel().getName());
+        Stream<String> leftOperandLoadCode = emitLoadFromValCode(condJump.getLeftOperand());
+        Stream<String> rightOperandLoadCode = emitLoadFromValCode(condJump.getRightOperand());
+        Stream<String> comparisonCode = emitComparisonOperatorCode(condJump.getOperator());
+        Stream<String> conditionalBranchCode = Stream.of("br_if $" + condJump.getTargetLabel().getName());
 
-        return Stream.concat(blockDefCode, Stream.concat(loadJumpCondCode, condBranchCode));
+        return Stream.concat(
+                Stream.concat(
+                        Stream.concat(
+                                Stream.concat(blockDefCode, leftOperandLoadCode),
+                                rightOperandLoadCode),
+                        comparisonCode),
+                conditionalBranchCode);
     }
 
     private Stream<String> emitMoveCode(Move move) {
@@ -116,11 +117,11 @@ public class LocalWATCodeEmitter {
     }
 
     private Stream<String> emitLoadFromLocalCode(Local localVar) {
-        return Stream.of("local.get " + localVar.getName());
+        return Stream.of("local.get $" + localVar.getName());
     }
 
     private Stream<String> emitLoadFromTempCode(Temp temp) {
-        return Stream.of("local.get " + temp.getName());
+        return Stream.of("local.get $" + temp.getName());
     }
 
     private Stream<String> emitLocalDefCode(LocalDef localDef) {

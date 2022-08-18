@@ -1,7 +1,7 @@
 package com.imc.rnd.lang.gowasm.ir.op;
 
 public enum RelOp {
-    LT("<");
+    LT("<"), GE(">=");
 
     private final String symbol;
 

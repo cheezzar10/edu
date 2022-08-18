@@ -23,23 +23,22 @@ public class IRDemo {
         codeBuffer.addOperation(new LocalDef("a", new Int(0)));
         codeBuffer.addOperation(new Move(new Local("a"), new Int(10)));
 
-        codeBuffer.addOperation(new Comparison(RelOp.LT, new Temp(0), new Local("a"), new Int(2)));
-        codeBuffer.addOperation(new CondJump(new Temp(0), new Label("b1.false")));
+        // codeBuffer.addOperation(new Comparison(RelOp.LT, new Temp(0), new Local("a"), new Int(2)));
+        codeBuffer.addOperation(new CondJump(new Local("a"), RelOp.GE, new Int(2), new Label("b1.f")));
 
         codeBuffer.addOperation(new Move(new Local("a"), new Int(20)));
 
         // d = a + b + c
         // t0 = a + b
-        codeBuffer.addOperation(
-                new ArithmeticCalc(ArithmeticOp.PLUS, new Temp(1), new Arg("n"), new Int(2))
-                        .withLabel(new Label("b1.false")));
+        codeBuffer.addOperation(new Label("b1.f"));
+        codeBuffer.addOperation(new ArithmeticCalc(ArithmeticOp.PLUS, new Temp(1), new Arg("n"), new Int(2)));
         // t1 = t0 + c
         codeBuffer.addOperation(new ArithmeticCalc(ArithmeticOp.PLUS, new Temp(2), new Temp(0), new Local("c")));
 
         // SetArg(0, t0)
 
         // TODO SetArg(index, val), Call(name), Compare(Val, Val), CondJump
-        // TODO temporaries are defined like locals, format: t_<temp_index>
+        // TODO temporaries are defined like locals, format: t.<temp_index>
         System.out.println("--- code buffer contents ---");
         System.out.println(codeBuffer.dumpOperationsToString());
 

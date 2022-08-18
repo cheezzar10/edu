@@ -8,8 +8,4 @@ public interface Op {
     Op withId(int id);
 
     OpCode getOpCode();
-
-    Optional<Label> getLabel();
-
-    Op withLabel(Label label);
 }
