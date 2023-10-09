@@ -21,7 +21,7 @@ public class Move extends BaseOp {
     }
 
     public String toString() {
-        return super.toString() + ": move (" + target + " <- (" + source + "))";
+        return super.toString() + ": move " + target + " = " + source;
     }
 
     @Override

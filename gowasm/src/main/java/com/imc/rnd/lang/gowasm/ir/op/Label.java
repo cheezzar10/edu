@@ -1,5 +1,7 @@
 package com.imc.rnd.lang.gowasm.ir.op;
 
+import java.util.Objects;
+
 public class Label extends BaseOp {
     private final String name;
 
@@ -8,31 +10,43 @@ public class Label extends BaseOp {
         return OpCode.LABEL;
     }
 
-    public enum JumpDir {
-        FORWARD, BACKWARD
-    }
-
-    private final JumpDir jumpDir;
-
     public Label(String name) {
         this.name = name;
-        this.jumpDir = JumpDir.FORWARD;
-    }
-
-    public Label(String name, JumpDir jumpDir) {
-        this.name = name;
-        this.jumpDir = jumpDir;
     }
 
     public String getName() {
         return name;
     }
 
-    public JumpDir getJumpDir() {
-        return jumpDir;
+    public boolean isTargetFor(Op op) {
+        var result = switch (op.getOpCode()) {
+            case JUMP -> ((Jump)op).getTargetLabel().equals(this);
+            case COND_JUMP -> ((CondJump)op).getTargetLabel().equals(this);
+            default -> false;
+        };
+
+        return result;
     }
 
     public String toString() {
         return super.toString() + ": label `" + name + "`";
+    }
+
+    public boolean equals(Object thatObj) {
+        if (this == thatObj) {
+            return true;
+        }
+
+        if (!(thatObj instanceof Label)) {
+            return false;
+        }
+
+        var that = (Label) thatObj;
+
+        return Objects.equals(that.name, name);
+    }
+
+    public int hashCode() {
+        return Objects.hashCode(name);
     }
 }

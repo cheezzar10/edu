@@ -4,9 +4,11 @@ import com.imc.rnd.lang.gowasm.ir.op.ArithmeticCalc;
 import com.imc.rnd.lang.gowasm.ir.op.ArithmeticOp;
 import com.imc.rnd.lang.gowasm.ir.op.Comparison;
 import com.imc.rnd.lang.gowasm.ir.op.CondJump;
+import com.imc.rnd.lang.gowasm.ir.op.Jump;
 import com.imc.rnd.lang.gowasm.ir.op.Label;
 import com.imc.rnd.lang.gowasm.ir.op.LocalDef;
 import com.imc.rnd.lang.gowasm.ir.op.Move;
+import com.imc.rnd.lang.gowasm.ir.op.Nop;
 import com.imc.rnd.lang.gowasm.ir.op.Op;
 import com.imc.rnd.lang.gowasm.ir.op.RelOp;
 import com.imc.rnd.lang.gowasm.ir.op.ReturnVal;
@@ -36,16 +38,17 @@ public class LocalWATCodeEmitter {
     }
 
     private Stream<String> emitOperationCode(Op op) {
-        switch (op.getOpCode()) {
-            case LOCAL_DEF: return emitLocalDefCode((LocalDef)op);
-            case MOVE: return emitMoveCode((Move)op);
-            case COND_JUMP: return emitCondJumpCode((CondJump)op);
-            case COMPARISON: return emitComparisonCode((Comparison)op);
-            case ARITHMETIC_CALC: return emitArithmeticExprCode((ArithmeticCalc)op);
-            case LABEL: return emitLabelCode((Label)op);
-            case RETURN_VAL: return emitReturnValCode((ReturnVal)op);
-            default: throw new IllegalArgumentException("unsupported op code: " + op.getOpCode());
-        }
+        return switch (op.getOpCode()) {
+            case LOCAL_DEF -> emitLocalDefCode((LocalDef)op);
+            case MOVE -> emitMoveCode((Move)op);
+            case COND_JUMP -> emitCondJumpCode((CondJump)op);
+            case COMPARISON -> emitComparisonCode((Comparison)op);
+            case ARITHMETIC_CALC -> emitArithmeticExprCode((ArithmeticCalc)op);
+            case LABEL -> emitLabelCode((Label)op);
+            case RETURN_VAL -> emitReturnValCode((ReturnVal)op);
+            case NOP -> emitNopCode((Nop)op);
+            case JUMP -> emitJumpCode((Jump)op);
+        };
     }
 
     private Stream<String> emitReturnValCode(ReturnVal returnVal) {
@@ -55,7 +58,16 @@ public class LocalWATCodeEmitter {
     }
 
     private Stream<String> emitLabelCode(Label label) {
-        return Stream.of(") ;; " + label.getName());
+        boolean backJump = codeBuffer.getOperations()
+                .stream()
+                .skip(label.getId() + 1)
+                .anyMatch(op -> label.isTargetFor(op));
+
+        if (backJump) {
+            return Stream.of("(loop $" + label.getName());
+        } else {
+            return Stream.of(") ;; " + label.getName());
+        }
     }
 
     private Stream<String> emitArithmeticExprCode(ArithmeticCalc arithmeticCalc) {
@@ -104,13 +116,19 @@ public class LocalWATCodeEmitter {
         Stream<String> comparisonCode = emitComparisonOperatorCode(condJump.getOperator());
         Stream<String> conditionalBranchCode = Stream.of("br_if $" + condJump.getTargetLabel().getName());
 
-        return Stream.concat(
+        var condJumpCode = Stream.concat(
                 Stream.concat(
                         Stream.concat(
                                 Stream.concat(blockDefCode, leftOperandLoadCode),
                                 rightOperandLoadCode),
                         comparisonCode),
                 conditionalBranchCode);
+
+        if (condJump.getId() > condJump.getTargetLabel().getId()) {
+            return Stream.concat(condJumpCode, Stream.of(") ;; " + condJump.getTargetLabel().getName()));
+        } else {
+            return condJumpCode;
+        }
     }
 
     private Stream<String> emitMoveCode(Move move) {
@@ -150,5 +168,19 @@ public class LocalWATCodeEmitter {
         String localDefTypeName = "i32"; // TODO get from symbol table
         // TODO also, generate initial value initialization code ( local.set $<var name> )
         return Stream.of("(local $" + localDef.getName() + " " + localDefTypeName + ")");
+    }
+
+    private Stream<String> emitNopCode(Nop nop) {
+        return Stream.of("nop");
+    }
+
+    private Stream<String> emitJumpCode(Jump jump) {
+        var jumpCode = Stream.of("br $" + jump.getTargetLabel().getName());
+
+        if (jump.getId() > jump.getTargetLabel().getId()) {
+            return Stream.concat(jumpCode, Stream.of(") ;; " + jump.getTargetLabel().getName()));
+        } else {
+            return jumpCode;
+        }
     }
 }

@@ -33,7 +33,7 @@ public class CondJump extends BaseOp {
 
     public String toString() {
         return super.toString() +
-                ": cond jump ((" + leftOperand + " " + operator + " " + rightOperand + ") |-> " + targetLabel + ")";
+                ": cond jump (" + leftOperand + " " + operator + " " + rightOperand + ") --> " + targetLabel;
     }
 
     @Override

@@ -17,4 +17,8 @@ public class ReturnVal extends BaseOp {
     public OpCode getOpCode() {
         return OpCode.RETURN_VAL;
     }
+
+    public String toString() {
+        return super.toString() + ": return " + value;
+    }
 }

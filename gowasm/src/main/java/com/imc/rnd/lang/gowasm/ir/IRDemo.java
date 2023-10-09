@@ -3,10 +3,12 @@ package com.imc.rnd.lang.gowasm.ir;
 import com.imc.rnd.lang.gowasm.ir.op.ArithmeticCalc;
 import com.imc.rnd.lang.gowasm.ir.op.Comparison;
 import com.imc.rnd.lang.gowasm.ir.op.CondJump;
+import com.imc.rnd.lang.gowasm.ir.op.Jump;
 import com.imc.rnd.lang.gowasm.ir.op.Label;
 import com.imc.rnd.lang.gowasm.ir.op.LocalDef;
 import com.imc.rnd.lang.gowasm.ir.op.ArithmeticOp;
 import com.imc.rnd.lang.gowasm.ir.op.Move;
+import com.imc.rnd.lang.gowasm.ir.op.Nop;
 import com.imc.rnd.lang.gowasm.ir.op.RelOp;
 import com.imc.rnd.lang.gowasm.ir.op.ReturnVal;
 import com.imc.rnd.lang.gowasm.ir.val.Arg;
@@ -25,15 +27,21 @@ public class IRDemo {
         codeBuffer.addOperation(new Move(new Local("a"), new Int(10)));
 
         // codeBuffer.addOperation(new Comparison(RelOp.LT, new Temp(0), new Local("a"), new Int(2)));
-        codeBuffer.addOperation(new CondJump(new Local("a"), RelOp.GE, new Int(2), new Label("b1.f")));
+        var condFalseLabel = new Label("b1.f");
+        codeBuffer.addOperation(new CondJump(new Local("a"), RelOp.GE, new Int(2), condFalseLabel));
         codeBuffer.addOperation(new ReturnVal(new Arg("n")));
+        codeBuffer.addOperation(condFalseLabel);
 
         codeBuffer.addOperation(new Move(new Local("a"), new Int(20)));
 
-        // d = a + b + c
-        // t0 = a + b
-        codeBuffer.addOperation(new Label("b1.f"));
         codeBuffer.addOperation(new ArithmeticCalc(new Temp(0), new Arg("n"), ArithmeticOp.MINUS, new Int(1)));
+
+        // for {}
+        // TODO should be compiled as (loop $l1)
+        var loopLabel = new Label("l1");
+        codeBuffer.addOperation(loopLabel);
+        codeBuffer.addOperation(new Nop());
+        codeBuffer.addOperation(new Jump(loopLabel));
 
         // SetArg(0, t0)
 

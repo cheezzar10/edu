@@ -17,7 +17,7 @@ public class LocalDef extends BaseOp {
     }
 
     public String toString() {
-        return super.toString() + ": local def (`" + name + "` <- (" + initialValue + ")";
+        return super.toString() + ": local def `" + name + "` = " + initialValue;
     }
 
     @Override

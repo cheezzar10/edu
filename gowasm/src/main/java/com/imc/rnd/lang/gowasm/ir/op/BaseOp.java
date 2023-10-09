@@ -1,7 +1,5 @@
 package com.imc.rnd.lang.gowasm.ir.op;
 
-import java.util.Optional;
-
 public abstract class BaseOp implements Op {
     private int id;
 

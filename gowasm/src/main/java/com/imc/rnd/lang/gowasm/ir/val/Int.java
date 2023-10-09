@@ -17,6 +17,6 @@ public class Int implements Val {
     }
 
     public String toString() {
-        return "int (" + value + ")";
+        return value + " : int";
     }
 }

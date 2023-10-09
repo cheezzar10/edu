@@ -1,0 +1,84 @@
+************ control flow statement translation *************
+
+if (a >= 2) {
+	// do something
+}
+
+the following compilation targets are possible
+
+1. x86-32
+mov eax, [ebp+4]
+cmp eax, 2
+jl b1_false
+b1_false:
+
+2. Java byte code
+iload_1
+bipush 2
+if_cmplt b1_false
+b1_false:
+
+3. wasm
+(
+  block $b1_false
+  local.get $x
+  i32.const 2
+  i32.lt_s
+  br_if $b1_false
+) ;; $b1_false
+
+4. RISC-V
+// the same as li t0, 4
+addi x5, x0, 4
+blt x10, x5, b1_false
+b1_false:
+
+************ control flow statement with boolean expression ************
+
+bool greater = a >= 2;
+if (greater) {
+	// do something
+}
+
+1. x86-32
+mov dword [ebp-4], 0 ; greater = false
+mov eax, [epb+4] ; eax = a
+cmp eax, 2
+jl b1_false
+mov [ebp-4], 1 ; greater = true
+b1_false:
+
+mov eax, [ebp-4]
+cmp eax, 1
+jne c1_false
+; something
+c1_false:
+
+2. Java byte code
+; bool greater = false
+iconst_0
+istore_2
+
+iload_1
+bipush 2
+if_cmplt b1_false
+iconst_1 ; greater = true
+istore_2
+b1_false:
+
+iload_2
+ifeq c1_false
+; something
+c1_false:
+
+3. wasm
+
+************ loop expression translation ************
+int sum = 0;
+int i = 1;
+// [1..100] sum
+l1_begin:
+while (i < 101) {
+	sum = sum + i;
+}
+b1_false:
